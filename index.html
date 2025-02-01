@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: radial-gradient(circle at center, #2b0a1a, #000);
+            margin: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gradient-overlay {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255,230,240,0.1) 0%, rgba(0,0,0,0) 60%);
+            pointer-events: none;
+        }
+
+        .heart-container {
+            position: relative;
+            animation: float 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 20px rgba(255, 105, 180, 0.5));
+        }
+
+        .heart {
+            position: relative;
+            width: 150px;
+            height: 135px;
+            animation: heartbeat 1.2s ease-in-out infinite;
+        }
+
+        .heart:before,
+        .heart:after {
+            position: absolute;
+            content: "";
+            width: 75px;
+            height: 120px;
+            background: linear-gradient(45deg, #ff69b4, #ff1493, #ff0066);
+            border-radius: 75px 75px 0 0;
+            transition: all 0.3s ease;
+        }
+
+        .heart:before {
+            left: 75px;
+            transform: rotate(-45deg);
+            transform-origin: 0 100%;
+        }
+
+        .heart:after {
+            left: 0;
+            transform: rotate(45deg);
+            transform-origin: 100% 100%;
+        }
+
+        .heart-glow {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,105,180,0.4) 0%, rgba(255,105,180,0) 70%);
+            animation: glow 2s ease-in-out infinite;
+            top: -50%;
+            left: -50%;
+        }
+
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            15% { transform: scale(1.25); }
+            30% { transform: scale(1); }
+            45% { transform: scale(1.15); }
+            60% { transform: scale(1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-25px); }
+            100% { transform: translateY(0px); }
+        }
+
+        @keyframes glow {
+            0% { opacity: 0.8; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+            100% { opacity: 0.8; transform: scale(0.8); }
+        }
+
+        .message {
+            font-family: 'Great Vibes', cursive;
+            font-size: 3.5em;
+            background: linear-gradient(45deg, #ff69b4, #ff1493, #ff0066);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin: 40px 0;
+            text-shadow: 0 0 30px rgba(255,105,180,0.4);
+            animation: text-float 4s ease-in-out infinite;
+        }
+
+        @keyframes text-float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .floating-hearts {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .floating-heart {
+            position: absolute;
+            animation: floatUp 8s linear infinite;
+            opacity: 0.6;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            30% { opacity: 0.6; }
+            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+        }
+
+        .signature {
+            position: fixed;
+            bottom: 30px;
+            font-family: 'Dancing Script', cursive;
+            font-size: 1.8em;
+            color: rgba(255,255,255,0.8);
+            text-shadow: 0 0 15px rgba(255,105,180,0.5);
+            animation: fade 3s ease-in-out infinite;
+        }
+
+        @keyframes fade {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particles"></canvas>
+    <div class="gradient-overlay"></div>
+    
+    <div class="heart-container">
+        <div class="heart-glow"></div>
+        <div class="heart"></div>
+    </div>
+    
+    <div class="message">Will you be my Valentine, Sam? 💘</div>
+    <div class="floating-hearts" id="floatingHearts"></div>
+    <div class="signature">crafted with ❤️ by zeruson</div>
+
+    <script>
+        // Particle Canvas
+        const canvas = document.getElementById('particles');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const particles = [];
+        const particleCount = 150;
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 0.2;
+                this.vy = (Math.random() - 0.5) * 0.2;
+                this.radius = Math.random() * 2;
+                this.color = `rgba(255,105,180,${Math.random() * 0.4})`;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+        }
+
+        // Initialize particles
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+            requestAnimationFrame(animateParticles);
+        }
+
+        // Floating hearts
+        function createFloatingHearts() {
+            const container = document.getElementById('floatingHearts');
+            const heartEmojis = ['💖', '💗', '💓', '💞', '💕'];
+            
+            setInterval(() => {
+                const heart = document.createElement('div');
+                heart.className = 'floating-heart';
+                heart.style.left = `${Math.random() * 100}%`;
+                heart.style.fontSize = `${20 + Math.random() * 30}px`;
+                heart.textContent = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
+                container.appendChild(heart);
+                
+                setTimeout(() => heart.remove(), 8000);
+            }, 500);
+        }
+
+        // Resize handler
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Start animations
+        animateParticles();
+        createFloatingHearts();
+    </script>
+</body>
+</html>
